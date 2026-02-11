@@ -23,10 +23,10 @@ def generate_schedule(principal, annual_rate, years):
         principal_paid = emi - interest
         balance -= principal_paid
 
-        if balance < 0:
+        if balance < 0: #prevent negative balance
             balance = 0
 
-        schedule.append([
+        schedule.append([   #store monthly data
             month,
             round(emi, 2),
             round(principal_paid, 2),
@@ -39,13 +39,10 @@ def generate_schedule(principal, annual_rate, years):
 
     return df
 
-
-# ------------------------------
 # Multiple Loan Support
-# ------------------------------
 
 def main():
-    print("🏦 Loan Repayment Calculator")
+    print(" Loan Repayment Calculator")
 
     num_loans = int(input("Enter number of loans: "))
 
@@ -61,12 +58,12 @@ def main():
                 raise ValueError
 
         except ValueError:
-            print("❌ Invalid input. Please enter positive numbers.")
+            print(" Invalid input. Please enter positive numbers.")
             continue
 
         schedule_df = generate_schedule(principal, rate, years)
 
-        print("\n📅 Repayment Schedule:")
+        print("\n Repayment Schedule:")
         print(schedule_df)
 
         total_interest = schedule_df["Interest_Paid"].sum()
@@ -79,3 +76,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
