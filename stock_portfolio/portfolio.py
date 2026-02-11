@@ -1,56 +1,64 @@
 import pandas as pd
+import yfinance as yf
 import matplotlib.pyplot as plt
 
-#Sample Data
-
-data = [
-    {"Stock": "TCS", "Quantity": 10, "Buy_Price": 3000, "Current_Price": 3500},
-    {"Stock": "INFY", "Quantity": 15, "Buy_Price": 1400, "Current_Price": 1350},
-    {"Stock": "HDFCBANK", "Quantity": 20, "Buy_Price": 1500, "Current_Price": 1650},
-    {"Stock": "RELIANCE", "Quantity": 8, "Buy_Price": 2500, "Current_Price": 2400},
+portfolio_data = [
+    {"Stock": "TCS.NS", "Quantity": 10, "Buy_Price": 3000},
+    {"Stock": "INFY.NS", "Quantity": 15, "Buy_Price": 1400},
+    {"Stock": "HDFCBANK.NS", "Quantity": 20, "Buy_Price": 1500},
+    {"Stock": "RELIANCE.NS", "Quantity": 8, "Buy_Price": 2500},
+    {"Stock": "ICICIBANK.NS", "Quantity": 12, "Buy_Price": 900},
+    {"Stock": "LT.NS", "Quantity": 5, "Buy_Price": 2000},
+    {"Stock": "SBIN.NS", "Quantity": 25, "Buy_Price": 550},
+    {"Stock": "ITC.NS", "Quantity": 30, "Buy_Price": 400},
 ]
 
-df = pd.DataFrame(data)
+df = pd.DataFrame(portfolio_data)
 
-# Financial Calculations
+def fetch_live_prices(stock_list):
+    prices = {}
+
+    for stock in stock_list:
+        ticker = yf.Ticker(stock)
+        data = ticker.history(period="1d")
+
+        if not data.empty:
+            prices[stock] = data["Close"].iloc[-1]
+        else:
+            prices[stock] = None
+
+    return prices
+
+live_prices = fetch_live_prices(df["Stock"])
+df["Current_Price"] = df["Stock"].map(live_prices)
 
 df["Investment"] = df["Quantity"] * df["Buy_Price"]
 df["Current_Value"] = df["Quantity"] * df["Current_Price"]
 df["Profit_Loss"] = df["Current_Value"] - df["Investment"]
 df["Return_%"] = (df["Profit_Loss"] / df["Investment"]) * 100
 
-# ------------------------------
-# Portfolio Summary
-# ------------------------------
-
 total_investment = df["Investment"].sum()
 total_current_value = df["Current_Value"].sum()
 total_profit = df["Profit_Loss"].sum()
 weighted_return = (total_profit / total_investment) * 100
 
-print("\n📊 STOCK PORTFOLIO REPORT")
+print("\n📊 LIVE STOCK PORTFOLIO REPORT")
 print(df)
 
 print("\n📈 PORTFOLIO SUMMARY")
-print("Total Investment:", total_investment)
-print("Current Value:", total_current_value)
-print("Total Profit/Loss:", total_profit)
+print("Total Investment:", round(total_investment, 2))
+print("Current Value:", round(total_current_value, 2))
+print("Total Profit/Loss:", round(total_profit, 2))
 print("Weighted Return: {:.2f}%".format(weighted_return))
 
+colors = ["green" if x >= 0 else "red" for x in df["Return_%"]]
 
-# Underperformers
-
-underperformers = df[df["Return_%"] < 0]
-print("\n Underperforming Stocks:")
-print(underperformers[["Stock", "Return_%"]])
-
-# Visualization
-# ------------------------------
-
-plt.figure()
-plt.bar(df["Stock"], df["Return_%"])
+plt.figure(figsize=(10,5))
+plt.bar(df["Stock"], df["Return_%"], color=colors)
+plt.axhline(0)
+plt.xticks(rotation=45)
 plt.xlabel("Stock")
 plt.ylabel("Return (%)")
-plt.title("Stock Return Comparison")
+plt.title("Live Portfolio Performance")
+plt.tight_layout()
 plt.show()
-
